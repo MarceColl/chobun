@@ -34,7 +34,7 @@
     (:div (if t 
 	      (:span "TRUE")
 	      (:span "FALSE")))
-    "<div><spanTRUE</span></div>")
+    "<div><span>TRUE</span></div>")
 (html-test "if inside dotimes"
     (:div (dotimes (i 6)
 	    (:div (if (= (mod i 2) 0)
