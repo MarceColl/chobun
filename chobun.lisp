@@ -167,7 +167,7 @@ in the generated code, so it feels like using Lisp."
      (cons *dynamic-html-gensym* (list res))))
 
 (defun eval-html (tree)
-  (let ((html-gen (optimize-html-codegen (parse-html tree))))
+  (let ((html-gen (parse-html tree)))
     (eval `(progn ,@html-gen))))
 
 (defun maybe-eval-html (tree)

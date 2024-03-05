@@ -13,6 +13,16 @@
 	 (let ,vars
 	   (is string= ,expected-output (html ,html-tree))))))
 
+(defun component (val)
+  (html
+   (:div
+    (:h1 val))))
+
+(defun dynamic-component (vals)
+  (with-dynamic-html
+    (loop for val in vals
+	  collect `(:li (:div (:h1 ,val))))))
+
 (html-test "Single tag" (:div "Hola") "<div>Hola</div>")
 (html-test "Nested tags" (:div (:span "Hola")) "<div><span>Hola</span></div>")
 (html-test "Same level tags" (:div (:span "Hola") (:h1 "Title")) "<div><span>Hola</span><h1>Title</h1></div>")
@@ -40,3 +50,17 @@
 	    (:div (if (= (mod i 2) 0)
 		      (:span (format nil "~a is EVEN" i))))))
     "<div><div><span>0 is EVEN</span></div><div></div><div><span>2 is EVEN</span></div><div></div><div><span>4 is EVEN</span></div><div></div></div>")
+(html-test "functions"
+    (:div (component "hola")
+	  (component "adeu"))
+    "<div><div><h1>hola</h1></div><div><h1>adeu</h1></div></div>")
+
+(html-test "functions and dolist"
+    (:ul
+     (dolist (val '("hola" "adeu" "wassup"))
+       (:li (component val))))
+    "<ul><li><div><h1>hola</h1></div></li><li><div><h1>adeu</h1></div></li><li><div><h1>wassup</h1></div></li></ul>")
+
+(html-test "dynamic-html"
+    (:ul (dynamic-component '("hola" "adeu" "wassup")))
+    "<ul><li><div><h1>hola</h1></div></li><li><div><h1>adeu</h1></div></li><li><div><h1>wassup</h1></div></li></ul>")
