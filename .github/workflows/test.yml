@@ -15,7 +15,6 @@ jobs:
       matrix:
         lisp:
           - sbcl-bin
-          - ccl-bin
           - ecl
 
     env:
