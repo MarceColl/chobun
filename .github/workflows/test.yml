@@ -1,4 +1,5 @@
-name: test
+name: 'CI'
+
 on:
   push:
     branches:
@@ -7,35 +8,26 @@ on:
     pull_request:
 
 jobs:
-  test:
+  tests:
     runs-on: ubuntu-latest
+
     strategy:
       matrix:
         lisp:
           - sbcl-bin
           - ccl-bin
 
-    defaults:
-      run:
-        shell: bash
     env:
       LISP: ${{ matrix.lisp }}
 
     steps:
       - uses: actions/checkout@v4
-      - name: Restore cache
-        id: cache-ql
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.roswell
-            ~/.cache/common-lisp
-          key: ${{ runner.os }}-ql
       - name: Install Lisp
         uses: 40ants/setup-lisp@v2
         with:
           asdf-system: chobun
       - name: Run tests
+        uses: 40ants/run-tests@v2
         with:
           asdf-system: chobun
       
