@@ -28,10 +28,12 @@ jobs:
         with:
           asdf-system: chobun
           qlfile-template: |
-            dist ultralisp http://dist.ultralisp.org
             github bedrock MarceColl/bedrock
       - name: Run tests
         uses: 40ants/run-tests@v2
         with:
           asdf-system: chobun
+          coveralls-token: ${{ matrix.lisp == 'sbcl-bin' &&
+                               matrix.os == 'ubuntu-latest' &&
+                               secrets.COVERALLS_TOKEN }}
       
