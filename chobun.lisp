@@ -40,7 +40,7 @@
 
   (define-step parse-tag-tree-node (first-element rest)
     (multiple-value-bind (args subtrees) (get-args-and-subtrees rest)
-      (add-code `(write-string ,(format nil "<~(~a~)~{ ~(~a~)=~s~}>" (symbol-name first-element) args) *html-stream*))
+      (add-code `(format *html-stream* "<~(~a~)~{ ~(~a~)=~s~}>" ,(symbol-name first-element) `,(list ,@args)))
       (dolist (next-tree-node subtrees)
 	(add-codes (parse-tree-node next-tree-node)))
       (add-code `(write-string ,(format nil "</~(~a~)>" (symbol-name first-element)) *html-stream*))))
@@ -51,9 +51,9 @@
       ((in first-element *hoistable-special-forms*)
        (add-code `(,first-element ,(car rest) ,@(parse-tree-node (cadr rest)))))
       ((in first-element *inline-special-forms*)
-       (add-code `(format *html-stream* "~@[~a~]" (,first-element ,(car rest)
-							     (progn ,@(parse-tree-node (cadr rest)) nil)
-							     (progn ,@(parse-tree-node (caddr rest)) nil)))))
+       (add-code `(,first-element ,(car rest)
+				  (progn ,@(parse-tree-node (cadr rest)) nil)
+				  (progn ,@(parse-tree-node (caddr rest)) nil))))
       (t (add-code `(format *html-stream* "~@[~a~]" (maybe-eval-html (apply #',first-element (list ,@rest))))))))
     
   (define-step parse-list-tree-node (tree-node)
@@ -79,7 +79,8 @@
 	  (str "")
 	  (format-args nil))
       (flet ((commit-curr-str ()
-	       (pushback `(format *html-stream* ,str ,@format-args) res)
+	       (if (> (length str) 0)
+		   (pushback `(format *html-stream* ,str ,@format-args) res))
 	       (setf str "" format-args nil))
 	     (append-to-str (val) (setf str (concatenate 'string str val))))
 	(dolist (l c)
@@ -93,6 +94,12 @@
 	     (commit-curr-str)
 	     (pushback `(dolist ,(cadr l)
 			  ,@(optimize-html-codegen (cddr l))) res))
+	    ((eq 'if (car l))
+	     (commit-curr-str)
+	     (pushback `(if ,(cadr l)
+			    (progn ,@(optimize-html-codegen (cddr l)))
+			    (progn ,@(optimize-html-codegen (cdddr l))))
+		       res))
 	    (t (commit-curr-str) 
 	       (pushback l res))))
 	(commit-curr-str)
@@ -149,7 +156,7 @@ The HTML tree is a nested Lisp S-Expression, each nested list can start by eithe
 If it's a keyword then it's interpreted as an HTML tag. For example (:div \"Hola\") is interpreted as \"<div>Hola</div>\".
 If it's a symbol what happens depends on the symbol, if it's one of the supported Lisp control structures, in includes that
 in the generated code, so it feels like using Lisp."
-  (let ((html-gen (optimize-html-codegen (parse-html html-tree))))
+  (let ((html-gen (parse-html html-tree)))
     `(progn
        (let ((*html-stream* (make-string-output-stream)))
 	 (with-output-to-string (*html-stream*)
