@@ -100,3 +100,27 @@ If the control structures available are not enough for the html you need to gene
   
 => "<ul><li><div class=\"person\"><h1>Person 1</h1><p>A Lisp programmer</p></div></li><li><div class=\"person\"><h1>Person 2</h1><p>Another Lisp programmer</p></div></li></ul>"
 ```
+
+### Layouts
+
+ChoBun adds a simple layout system as well, you can define a layout by passing a name, an arglist and an html tree.
+This tree can use all the features of the html macro.
+
+Whenever you want the content of the layout to happen, use the `(yield)` function.
+
+```lisp
+(define-layout main-layout (&key title)
+  (:html
+    (:head
+	  (:script :src "https://whatever")
+	  (:title title))
+	(:body
+      (yield))))
+```
+
+Afterwards you can use the layout like so:
+
+```lisp
+(with-layout main-layout (:title "Hello World!")
+  (:div "Hello World"))
+```
